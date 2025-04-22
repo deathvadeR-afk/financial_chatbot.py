@@ -1,0 +1,227 @@
+<!-- templates/index.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Financial Chatbot</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background-color: #f5f7fa;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            color: #2c3e50;
+        }
+        #chat-container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: white;
+        }
+        #chat-messages { 
+            height: 400px; 
+            overflow-y: auto; 
+            padding: 15px; 
+            background: white;
+        }
+        #user-input { 
+            width: 100%; 
+            display: flex; 
+            border-top: 1px solid #eee;
+        }
+        #user-query { 
+            flex: 1; 
+            padding: 12px; 
+            border: none;
+            font-size: 15px;
+            outline: none;
+        }
+        button { 
+            padding: 12px 20px; 
+            background: #3498db; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            font-size: 15px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .user-message { 
+            background: #e1f5fe; 
+            padding: 10px 15px; 
+            margin: 8px 0; 
+            border-radius: 18px; 
+            text-align: right; 
+            max-width: 80%;
+            margin-left: auto;
+            position: relative;
+        }
+        .bot-message { 
+            background: #f1f1f1; 
+            padding: 10px 15px; 
+            margin: 8px 0; 
+            border-radius: 18px; 
+            max-width: 80%;
+            position: relative;
+        }
+        .typing-indicator {
+            display: none;
+            background: #f1f1f1;
+            padding: 8px 15px;
+            border-radius: 18px;
+            width: fit-content;
+            margin: 8px 0;
+        }
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background: #999;
+            display: inline-block;
+            border-radius: 50%;
+            margin: 0 1px;
+            animation: bounce 1.3s linear infinite;
+        }
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-4px); }
+        }
+        .instructions {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        code {
+            background: #e9ecef;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Financial Chatbot</h1>
+        <p>Get insights about Microsoft, Tesla, and Apple's financial data from 2022-2024</p>
+    </div>
+    
+    <div id="chat-container">
+        <div id="chat-messages">
+            <div class="bot-message">Welcome to the Financial Chatbot! I can answer questions about Microsoft, Tesla, and Apple's financial data from 2022-2024. Try asking me one of these questions:
+                <ol>
+                    <li>What is the total revenue for [company] in [year]?</li>
+                    <li>How has [company]'s net income changed over the last year?</li>
+                    <li>Which company had the highest revenue growth in the most recent year?</li>
+                    <li>What is the financial health of [company]?</li>
+                    <li>Compare the cash flow performance of all companies</li>
+                </ol>
+            </div>
+        </div>
+        <div class="typing-indicator" id="typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div id="user-input">
+            <input type="text" id="user-query" placeholder="Type your question here...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+    
+    <div class="instructions">
+        <h3>Example Queries</h3>
+        <ul>
+            <li><code>What is the total revenue for Microsoft in 2024?</code></li>
+            <li><code>How has Tesla's net income changed over the last year?</code></li>
+            <li><code>Which company had the highest revenue growth?</code></li>
+            <li><code>What is the financial health of Apple?</code></li>
+            <li><code>Compare the cash flow performance of all companies</code></li>
+        </ul>
+    </div>
+
+    <script>
+        function sendMessage() {
+            var userQuery = document.getElementById('user-query').value;
+            if (!userQuery) return;
+
+            // Add user message to chat
+            var chatMessages = document.getElementById('chat-messages');
+            var userDiv = document.createElement('div');
+            userDiv.className = 'user-message';
+            userDiv.textContent = userQuery;
+            chatMessages.appendChild(userDiv);
+
+            // Clear input field
+            document.getElementById('user-query').value = '';
+            
+            // Show typing indicator
+            var typingIndicator = document.getElementById('typing-indicator');
+            typingIndicator.style.display = 'block';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Send request to server
+            fetch('/get_response', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'user_query=' + encodeURIComponent(userQuery)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide typing indicator
+                typingIndicator.style.display = 'none';
+                
+                // Add bot response to chat
+                var botDiv = document.createElement('div');
+                botDiv.className = 'bot-message';
+                
+                // Replace newlines with <br> tags
+                botDiv.innerHTML = data.response.replace(/\n/g, '<br>');
+                
+                chatMessages.appendChild(botDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                typingIndicator.style.display = 'none';
+                
+                // Add error message to chat
+                var botDiv = document.createElement('div');
+                botDiv.className = 'bot-message';
+                botDiv.textContent = 'Sorry, something went wrong. Please try again.';
+                chatMessages.appendChild(botDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            });
+        }
+
+        // Allow pressing enter to send
+        document.getElementById('user-query').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
