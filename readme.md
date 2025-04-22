@@ -33,7 +33,7 @@ A Python-based chatbot that provides financial insights and analysis for Microso
 
 1. Clone the repository:
 ```bash
-git clone [repository-url]
+git clone [https://github.com/deathvadeR-afk/financial_chatbot.py]
 cd financial_chatbot
 ```
 
